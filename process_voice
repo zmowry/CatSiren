@@ -1,0 +1,26 @@
+import json
+from google.cloud import pubsub_v1
+
+PROJECT_ID = "solid-linker-362120"
+TOPIC_ID = "SoundData"
+
+
+def publish_messages(project_id, topic_id, payload):
+    """Publishes multiple messages to a Pub/Sub topic."""
+
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(project_id, topic_id)
+
+    message_json = json.dumps(payload)
+    data = message_json.encode('utf-8')
+    publisher.publish(topic_path, data)
+    
+
+def process_voice(request):
+    request_json = request.get_json()
+    queryResult = request_json['queryResult']
+    parameters = queryResult['parameters']
+
+    cat_status = parameters['catonshelf']
+    payload = {"cat_status": cat_status}
+    publish_messages(PROJECT_ID, TOPIC_ID, json.dumps(payload))
